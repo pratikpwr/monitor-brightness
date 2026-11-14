@@ -1,12 +1,17 @@
 <#
-  install.ps1 - install Monitor Brightness for the current user (no admin needed).
+  install.ps1 - install, update or uninstall Monitor Brightness for the current user (no admin needed).
 
   App files : %LOCALAPPDATA%\MonitorBrightness
   Tray app  : starts automatically when you sign in (Startup folder shortcut)
   Shortcuts : Desktop and Start menu "Monitor Brightness" (start the tray app / open the slider)
+  Settings  : listed in Settings > Apps > Installed apps, with an Uninstall button
   Run with -Uninstall to remove everything.
 #>
 param([switch]$Uninstall)
+
+$Version  = '1.0.0'
+$RepoUrl  = 'https://github.com/pratikpwr/monitor-brightness'
+$Files    = 'ddc.cs', 'ui.cs', 'tray.ps1', 'brightness.ps1', 'install.ps1', 'icon.ico'
 
 $app      = Join-Path $env:LOCALAPPDATA 'MonitorBrightness'
 $programs = [Environment]::GetFolderPath('Programs')
@@ -17,6 +22,7 @@ $links    = @(
     (Join-Path $desktop  'Monitor Brightness.lnk'),
     (Join-Path $startup  'Monitor Brightness.lnk')
 )
+$uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\MonitorBrightness'
 
 function Test-TrayRunning {
     $m = $null
@@ -48,34 +54,67 @@ Stop-Tray
 Remove-Item $old -Recurse -Force -ErrorAction SilentlyContinue
 
 if ($Uninstall) {
+    Remove-Item $uninstallKey -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item ($links + $app) -Recurse -Force -ErrorAction SilentlyContinue
     if (Test-Path $app) { Write-Host "Shortcuts removed, but could not delete $app (a file is in use). Delete it by hand." }
-    else { Write-Host "Uninstalled." }
+    else { Write-Host "Monitor Brightness has been uninstalled." }
     return
 }
 
+# ---- copy the app ----
+# Files can sit next to this script (release ZIP) or in assets\ (the icon in a git clone).
 New-Item -ItemType Directory -Force $app | Out-Null
-if ((Resolve-Path $PSScriptRoot).Path -ne (Resolve-Path $app).Path) {
-    foreach ($f in 'ddc.cs', 'ui.cs', 'tray.ps1', 'brightness.ps1', 'install.ps1') {
-        Copy-Item (Join-Path $PSScriptRoot $f) $app -Force
+$fromSelf = (Resolve-Path $PSScriptRoot).Path -eq (Resolve-Path $app).Path
+if (-not $fromSelf) {
+    foreach ($f in $Files) {
+        $src = Join-Path $PSScriptRoot $f
+        if (-not (Test-Path $src)) { $src = Join-Path $PSScriptRoot "assets\$f" }
+        if (-not (Test-Path $src)) { Write-Host "Missing file: $f. Download the full release ZIP and try again."; exit 1 }
+        Copy-Item $src $app -Force
     }
 }
+# Files from a downloaded ZIP are marked as "from the internet"; the app is trusted once installed.
+Get-ChildItem $app -File | Unblock-File -ErrorAction SilentlyContinue
 
-# conhost --headless runs PowerShell without a console window flashing up.
+# ---- shortcuts (conhost --headless runs PowerShell without a console window flashing up) ----
 $conhost = Join-Path $env:WINDIR 'System32\conhost.exe'
 $ps      = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $args_   = "--headless `"$ps`" -NoProfile -ExecutionPolicy Bypass -File `"$app\tray.ps1`""
+$icon    = Join-Path $app 'icon.ico'
 
 $shell = New-Object -ComObject WScript.Shell
 foreach ($path in $links) {
     $s = $shell.CreateShortcut($path)
     $s.TargetPath = $conhost
     $s.Arguments = $args_
-    $s.WorkingDirectory = $app
-    $s.Description = 'Monitor brightness slider (tray app)'
-    $s.IconLocation = "$env:WINDIR\System32\imageres.dll,101"
+    $s.WorkingDirectory = $env:USERPROFILE
+    $s.Description = 'Control your external monitor brightness'
+    $s.IconLocation = "$icon,0"
     $s.Save()
 }
 
-Start-Process -FilePath $conhost -ArgumentList $args_ -WorkingDirectory $app
-Write-Host "Installed to $app and started the tray app."
+# ---- Settings > Apps entry (per user, with Uninstall button) ----
+$kb = [int]((Get-ChildItem $app -File | Measure-Object Length -Sum).Sum / 1KB)
+New-Item -Path $uninstallKey -Force | Out-Null
+$uninstallCmd = "`"$ps`" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$app\install.ps1`" -Uninstall"
+$values = @{
+    DisplayName          = 'Monitor Brightness'
+    DisplayVersion       = $Version
+    Publisher            = 'pratikpwr'
+    DisplayIcon          = $icon
+    InstallLocation      = $app
+    UninstallString      = $uninstallCmd
+    QuietUninstallString = $uninstallCmd
+    URLInfoAbout         = $RepoUrl
+    HelpLink             = "$RepoUrl#troubleshooting"
+    InstallDate          = (Get-Date -Format 'yyyyMMdd')
+}
+foreach ($k in $values.Keys) { Set-ItemProperty -Path $uninstallKey -Name $k -Value $values[$k] }
+foreach ($k in 'NoModify', 'NoRepair', 'EstimatedSize') {
+    $v = if ($k -eq 'EstimatedSize') { $kb } else { 1 }
+    New-ItemProperty -Path $uninstallKey -Name $k -Value $v -PropertyType DWord -Force | Out-Null
+}
+
+Start-Process -FilePath $conhost -ArgumentList $args_ -WorkingDirectory $env:USERPROFILE
+Write-Host "Monitor Brightness $Version is installed and running."
+Write-Host "Look for the sun icon in the system tray, or press Ctrl+Alt+B."

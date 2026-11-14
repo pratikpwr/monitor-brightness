@@ -1,94 +1,162 @@
-# Monitor Brightness
+<div align="center">
 
-Control your **external monitor's brightness from Windows**, with no need to reach for the monitor's physical buttons.
+<img src="assets/icon.png" width="72" alt="Monitor Brightness icon">
 
-Windows' own brightness slider only works for built-in laptop screens. This small tray app talks to external monitors over **DDC/CI** (the standard most modern monitors support) and gives you a panel that looks like Windows 11's quick settings.
+# Monitor Brightness for Windows
 
-![Brightness flyout](docs/flyout.png)
+**Change your external monitor's brightness from Windows 11 and Windows 10, without the monitor's buttons.**
+
+A free, open-source system tray app with a Windows 11–style brightness slider and keyboard shortcuts, for any external monitor that supports DDC/CI.
+
+[![Latest release](https://img.shields.io/github/v/release/pratikpwr/monitor-brightness?label=download&style=flat-square)](https://github.com/pratikpwr/monitor-brightness/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/pratikpwr/monitor-brightness/total?style=flat-square)](https://github.com/pratikpwr/monitor-brightness/releases)
+[![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows)](#requirements)
+[![License: MIT](https://img.shields.io/github/license/pratikpwr/monitor-brightness?style=flat-square)](LICENSE)
+
+![Monitor Brightness: Windows 11 style brightness slider for an external monitor](docs/flyout.png)
+
+**[⬇ Download MonitorBrightness.zip](https://github.com/pratikpwr/monitor-brightness/releases/latest/download/MonitorBrightness.zip)**
+
+</div>
+
+---
+
+Windows' brightness slider only works on **laptop screens**. On a desktop PC or an external monitor, it's missing or does nothing, so you're stuck pressing the monitor's physical buttons. **Monitor Brightness** fixes that. It talks to your monitor over **DDC/CI**, the standard most monitors already support, so you can adjust brightness from the taskbar or a keyboard shortcut.
 
 ## Features
 
-- **Tray icon:** click the sun icon to open the brightness panel. It's styled like Windows 11 quick settings and uses your accent colour and light/dark theme.
-- **Slider and presets:** drag the slider or click 10 / 30 / 50 / 70 / 100%. The mouse wheel and arrow keys work too.
-- **Global hotkeys:**
+- 🔆 **Brightness slider in the system tray.** Click the sun icon to get a flyout that looks like Windows 11 quick settings. It follows your accent colour and light/dark mode.
+- 🎚️ **One-click presets:** 10 / 30 / 50 / 70 / 100%.
+- ⌨️ **Global keyboard shortcuts:**
 
-  | Keys | Action |
+  | Shortcut | Action |
   |---|---|
-  | `Ctrl + Alt + B` | Open / close the panel |
-  | `Ctrl + Alt + Page Up` | 10% brighter |
-  | `Ctrl + Alt + Page Down` | 10% dimmer |
+  | `Ctrl` + `Alt` + `B` | Open / close the brightness slider |
+  | `Ctrl` + `Alt` + `Page Up` | 10% brighter |
+  | `Ctrl` + `Alt` + `Page Down` | 10% dimmer |
 
-- **Starts when you sign in:** it runs quietly in the tray.
-- **Sharp on every screen:** it handles a different scaling (DPI) on each monitor.
-- **Light:** no installer, no admin rights, no dependencies. It uses Windows PowerShell 5.1, which is built into Windows.
+- 🖱️ **Mouse wheel and arrow keys** work on the slider, including on precision touchpads.
+- 🚀 **Starts when you sign in** and stays quietly in the tray.
+- 🖥️ **Sharp on every display:** it handles a different scaling (DPI) per monitor.
+- 🪶 **Lightweight, no admin rights, nothing extra to install.** It uses Windows PowerShell, which is built into Windows. It appears in *Settings → Apps* with a normal Uninstall button.
+- 🔓 **Free and open source** (MIT).
+
+## Download and install
+
+### Option 1: ZIP (easiest)
+
+1. Download **[MonitorBrightness.zip](https://github.com/pratikpwr/monitor-brightness/releases/latest/download/MonitorBrightness.zip)** and extract it.
+2. Double-click **`Install.cmd`**.
+
+Look for the ☀ sun icon in the system tray, or press **Ctrl + Alt + B**.
+
+> Windows may say *"The publisher could not be verified"* because the scripts aren't code-signed. Click **Run**. All the source code is in this repo for you to inspect.
+
+### Option 2: one-line PowerShell install
+
+Open PowerShell (no admin needed) and run:
+
+```powershell
+irm https://raw.githubusercontent.com/pratikpwr/monitor-brightness/main/web-install.ps1 | iex
+```
+
+It downloads the latest release, installs it and cleans up after itself. To **update**, run the same command again, or run `Install.cmd` from a newer ZIP.
+
+### Option 3: from source
+
+```powershell
+git clone https://github.com/pratikpwr/monitor-brightness.git
+cd monitor-brightness
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
 
 ## Requirements
 
-- Windows 10 or 11 (the rounded corners need Windows 11).
-- An external monitor with **DDC/CI turned on**. It's usually on by default. If not, look for "DDC/CI" in the monitor's own on-screen menu.
+- **Windows 11 or Windows 10.** The rounded flyout corners need Windows 11.
+- An **external monitor with DDC/CI turned on.** Most monitors from Acer, Dell, LG, Samsung, ASUS, BenQ, HP, Lenovo, AOC, MSI, ViewSonic and others support it, and it's usually on by default. If not, enable **DDC/CI** in the monitor's on-screen menu.
+- It works over **HDMI, DisplayPort, USB-C and DVI**. Some docks, KVM switches and USB display adapters (often DisplayLink) don't pass DDC/CI through.
 
-## Install
+## FAQ
 
-1. Download this repo: **Code → Download ZIP**, then extract it. Or clone it:
-   ```
-   git clone https://github.com/pratikpwr/monitor-brightness.git
-   ```
-2. In the extracted folder, run:
-   ```
-   powershell -ExecutionPolicy Bypass -File install.ps1
-   ```
+**Why can't I change brightness on my external monitor in Windows 11?**
+Windows' built-in brightness slider controls only the built-in panels of laptops and tablets. External monitors have their own brightness setting, which Windows doesn't expose. This app sets it directly over DDC/CI, the same channel the monitor's own buttons use.
 
-The installer:
-- copies the app to `%LOCALAPPDATA%\MonitorBrightness`
-- adds a **Monitor Brightness** shortcut to the Desktop, the Start menu and your Startup folder
-- starts the tray app
+**What is DDC/CI?**
+*Display Data Channel / Command Interface.* It's a standard that lets a computer read and change monitor settings, such as brightness, over the video cable.
 
-Running the shortcut while the app is already running opens the panel.
+**Does it dim the screen with an overlay, like f.lux or Night light?**
+No. It changes the monitor's real **backlight brightness**. That saves power and is easier on your eyes than a dark overlay. For warmer colours in the evening, combine it with Windows **Night light**.
+
+**Does it work with multiple monitors?**
+Yes. The slider and hotkeys set every external monitor that supports DDC/CI to the same level. Laptop screens are left to Windows.
+
+**Is it safe?**
+It's open source (PowerShell plus a little C#), runs only for your user account, needs no admin rights, and makes no network connections. It only reads and sets brightness.
+
+**Can I change the shortcuts, step size or presets?**
+Yes. See [Customise](#customise).
 
 ## Command line
 
-`brightness.ps1` sets the brightness without the tray app:
+`brightness.ps1` can be used in scripts and scheduled tasks:
 
-```
-powershell -ExecutionPolicy Bypass -File brightness.ps1        # show current level
+```powershell
+powershell -ExecutionPolicy Bypass -File brightness.ps1        # show current brightness
 powershell -ExecutionPolicy Bypass -File brightness.ps1 40     # set to 40%
 powershell -ExecutionPolicy Bypass -File brightness.ps1 +10    # 10% brighter
+powershell -ExecutionPolicy Bypass -File brightness.ps1 -10    # 10% dimmer
 ```
+
+After installing, it's in `%LOCALAPPDATA%\MonitorBrightness`.
 
 ## Customise
 
 The installed files are in `%LOCALAPPDATA%\MonitorBrightness`.
 
-- **Hotkey step:** `$Step = 10` near the top of `tray.ps1`.
-- **Preset buttons:** `Presets = { 10, 30, 50, 70, 100 }` in `ui.cs`.
+| What | Where |
+|---|---|
+| Hotkey step (default 10%) | `$Step = 10` near the top of `tray.ps1` |
+| Preset buttons | `Presets = { 10, 30, 50, 70, 100 }` in `ui.cs` |
 
-After editing either file, right-click the tray icon → **Exit**, then open the **Monitor Brightness** shortcut again.
+After editing, right-click the tray icon → **Exit**, then open **Monitor Brightness** from the Start menu.
 
 ## Uninstall
 
-```
-powershell -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\MonitorBrightness\install.ps1" -Uninstall
+Use **Settings → Apps → Installed apps → Monitor Brightness → Uninstall**, double-click `Uninstall.cmd` from the ZIP, or run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\MonitorBrightness\install.ps1" -Uninstall
 ```
 
 ## Troubleshooting
 
-- **"No monitor answered DDC/CI":** turn on DDC/CI in the monitor's menu. Some docks, KVM switches and adapters (often DisplayLink) don't pass DDC/CI through. Try connecting the monitor directly.
-- **A hotkey does nothing:** another app may already use it. The tray app shows a notification at start-up if a hotkey couldn't be registered.
-- **The tray icon doesn't appear after a restart:** check *Settings → Apps → Startup* and turn on **Monitor Brightness**.
-- **Errors** are logged to `%LOCALAPPDATA%\MonitorBrightness\tray.log`.
+- **"No monitor answered DDC/CI"**
+  - Turn on DDC/CI in the monitor's menu.
+  - Connect the monitor directly instead of through a dock or adapter.
+  - Make sure the monitor isn't asleep.
+- **A shortcut does nothing:** another app is already using it. The tray app shows a notification at start-up if a shortcut couldn't be registered.
+- **No tray icon after restarting:** check **Settings → Apps → Startup** and turn on *Monitor Brightness*. The icon may also be hidden in the tray overflow (˄).
+- **Something else:** errors are logged to `%LOCALAPPDATA%\MonitorBrightness\tray.log`. Please [open an issue](https://github.com/pratikpwr/monitor-brightness/issues) with the log and your monitor model.
 
 ## How it works
 
 | File | Role |
 |---|---|
-| `ddc.cs` | Reads and sets brightness through the Windows monitor configuration API (`dxva2.dll`, DDC/CI). |
-| `ui.cs` | Draws the flyout, slider and buttons in the Windows 11 style, reads the theme and accent colour, and registers the global hotkeys. |
+| `ddc.cs` | Reads and sets brightness through the Windows Monitor Configuration API (`dxva2.dll`, DDC/CI VCP code 0x10). |
+| `ui.cs` | Draws the Windows 11–style flyout, Fluent slider and buttons. Reads the theme and accent colour, handles per-monitor DPI, and registers the global hotkeys. |
 | `tray.ps1` | The tray app. Runs a single instance and limits DDC/CI writes while you drag (the bus is slow). |
-| `install.ps1` | Per-user install, update and uninstall. |
+| `install.ps1` | Per-user install, update and uninstall, including the shortcuts, auto-start and the *Settings → Apps* entry. |
 | `brightness.ps1` | Command-line tool. |
+| `web-install.ps1` | The one-line installer. |
 
-The C# files are compiled at start-up by PowerShell's `Add-Type`, so there is nothing to build.
+The C# files are compiled when the app starts by PowerShell's `Add-Type`, so there's no build step. `tools/build-release.ps1` builds the release ZIP.
+
+## Contributing
+
+Issues and pull requests are welcome, especially reports of monitors that do or don't work.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © pratikpwr
+
+<sub>Keywords: windows 11 external monitor brightness, change monitor brightness without buttons, desktop PC brightness slider, DDC/CI brightness control, brightness hotkey windows, adjust second monitor brightness, screen brightness tray app.</sub>
