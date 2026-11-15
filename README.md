@@ -38,7 +38,7 @@ Windows' brightness slider only works on **laptop screens**. On a desktop PC or 
 - 🖱️ **Mouse wheel and arrow keys** work on the slider, including on precision touchpads.
 - 🚀 **Starts when you sign in** and stays quietly in the tray.
 - 🖥️ **Sharp on every display:** it handles a different scaling (DPI) per monitor.
-- 🪶 **Lightweight, no admin rights, nothing extra to install.** It uses Windows PowerShell, which is built into Windows. It appears in *Settings → Apps* with a normal Uninstall button.
+- 🪶 **Lightweight native app (about 50 KB), no admin rights, nothing extra to install.** It's built on your PC from source with tools already in Windows. It appears in *Settings → Apps* with a normal Uninstall button.
 - 🔓 **Free and open source** (MIT).
 
 ## Download and install
@@ -111,14 +111,20 @@ After installing, it's in `%LOCALAPPDATA%\MonitorBrightness`.
 
 ## Customise
 
-The installed files are in `%LOCALAPPDATA%\MonitorBrightness`.
+The installer keeps the source code in `%LOCALAPPDATA%\MonitorBrightness\src`, so you can change it and rebuild:
 
 | What | Where |
 |---|---|
-| Hotkey step (default 10%) | `$Step = 10` near the top of `tray.ps1` |
-| Preset buttons | `Presets = { 10, 30, 50, 70, 100 }` in `ui.cs` |
+| Hotkey step (default 10%) | `const int Step = 10;` in `src\app.cs` |
+| Preset buttons | `Presets = { 10, 30, 50, 70, 100 }` in `src\ui.cs` |
 
-After editing, right-click the tray icon → **Exit**, then open **Monitor Brightness** from the Start menu.
+Then rebuild and restart the app:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\MonitorBrightness\install.ps1"
+```
+
+**Start with Windows** can be turned on or off from the tray icon's right-click menu.
 
 ## Uninstall
 
@@ -135,21 +141,24 @@ powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\MonitorBrightness\in
   - Connect the monitor directly instead of through a dock or adapter.
   - Make sure the monitor isn't asleep.
 - **A shortcut does nothing:** another app is already using it. The tray app shows a notification at start-up if a shortcut couldn't be registered.
-- **No tray icon after restarting:** check **Settings → Apps → Startup** and turn on *Monitor Brightness*. The icon may also be hidden in the tray overflow (˄).
+- **No tray icon after restarting:**
+  - Check **Settings → Apps → Startup** and turn on *Monitor Brightness*.
+  - The icon may be hidden in the tray overflow (˄). Drag it onto the taskbar to keep it visible.
+- **Run the installer yourself.** Installing from inside another sandboxed app (for example a Microsoft Store app's terminal) can put the files in that app's private storage, where Windows can't see them at sign-in.
 - **Something else:** errors are logged to `%LOCALAPPDATA%\MonitorBrightness\tray.log`. Please [open an issue](https://github.com/pratikpwr/monitor-brightness/issues) with the log and your monitor model.
 
 ## How it works
 
 | File | Role |
 |---|---|
-| `ddc.cs` | Reads and sets brightness through the Windows Monitor Configuration API (`dxva2.dll`, DDC/CI VCP code 0x10). |
+| `app.cs` | The tray app (`MonitorBrightness.exe`). Runs a single instance, handles the hotkeys and the tray menu, and limits DDC/CI writes while you drag (the bus is slow). |
 | `ui.cs` | Draws the Windows 11–style flyout, Fluent slider and buttons. Reads the theme and accent colour, handles per-monitor DPI, and registers the global hotkeys. |
-| `tray.ps1` | The tray app. Runs a single instance and limits DDC/CI writes while you drag (the bus is slow). |
-| `install.ps1` | Per-user install, update and uninstall, including the shortcuts, auto-start and the *Settings → Apps* entry. |
+| `ddc.cs` | Reads and sets brightness through the Windows Monitor Configuration API (`dxva2.dll`, DDC/CI VCP code 0x10). |
+| `install.ps1` | Builds the exe and handles per-user install, update and uninstall, including shortcuts, auto-start (`HKCU\…\Run`) and the *Settings → Apps* entry. |
 | `brightness.ps1` | Command-line tool. |
 | `web-install.ps1` | The one-line installer. |
 
-The C# files are compiled when the app starts by PowerShell's `Add-Type`, so there's no build step. `tools/build-release.ps1` builds the release ZIP.
+The installer compiles `MonitorBrightness.exe` on your PC with the C# compiler that's part of the .NET Framework built into Windows. The release therefore contains only readable source code and no pre-built binary. `tools/build-release.ps1` builds the release ZIP.
 
 ## Contributing
 

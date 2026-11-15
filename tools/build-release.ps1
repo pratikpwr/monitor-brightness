@@ -13,7 +13,7 @@ $stage = Join-Path $dist 'MonitorBrightness'
 Remove-Item $dist -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage | Out-Null
 
-$files = 'Install.cmd', 'install.ps1', 'tray.ps1', 'ui.cs', 'ddc.cs', 'brightness.ps1', 'README.md', 'LICENSE'
+$files = 'Install.cmd', 'install.ps1', 'app.cs', 'ui.cs', 'ddc.cs', 'app.manifest', 'brightness.ps1', 'README.md', 'LICENSE'
 foreach ($f in $files) { Copy-Item (Join-Path $root $f) $stage }
 Copy-Item (Join-Path $root 'assets\icon.ico') $stage
 
